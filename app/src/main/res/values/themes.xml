@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- 继承系统基础主题，避免各种控件报错 -->
+    <style name="Theme.MyApp" parent="Theme.AppCompat.Light.DarkActionBar">
+        <!-- 你可以在这里自定义颜色、状态栏等 -->
+        <item name="colorPrimary">#6200EE</item>
+        <item name="colorPrimaryDark">#3700B3</item>
+        <item name="colorAccent">#03DAC5</item>
+    </style>
+</resources>
