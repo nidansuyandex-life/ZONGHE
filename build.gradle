@@ -1,23 +1,16 @@
 // 根目录 build.gradle
 buildscript {
-    ext.kotlin_version = '1.9.0' // 根据你的项目修改
+    ext.kotlin_version = '1.9.0'
     repositories {
         google()
         mavenCentral()
     }
     dependencies {
-        classpath 'com.android.tools.build:gradle:8.1.0' // 建议使用较新的AGP版本
+        classpath 'com.android.tools.build:gradle:8.1.0' // 对应Gradle 8.0+
         classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version"
     }
 }
 
-allprojects {
-    repositories {
-        google()
-        mavenCentral()
-        // 如果你有其他私服或特定的maven仓库，在这里添加
-        flatDir {
-            dirs 'app/libs' // 允许本地AAR被识别
-        }
-    }
+tasks.register('clean', Delete) {
+    delete rootProject.buildDir
 }
