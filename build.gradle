@@ -1,16 +1,88 @@
-// 根目录 build.gradle
-buildscript {
-    ext.kotlin_version = '1.9.0'
-    repositories {
-        google()
-        mavenCentral()
+plugins {
+    id 'com.android.application'
+    id 'org.jetbrains.kotlin.android'
+}
+
+android {
+    namespace 'com.example.myapp' // ⚠️ 必须改成你自己的包名
+    compileSdk 34
+
+    defaultConfig {
+        applicationId "com.example.myapp" // ⚠️ 必须改成你自己的包名
+        minSdk 24
+        targetSdk 34
+        versionCode 1
+        versionName "1.0"
+
+        ndk {
+            abiFilters 'armeabi-v7a', 'arm64-v8a' // 讯飞SDK常用架构
+        }
     }
-    dependencies {
-        classpath 'com.android.tools.build:gradle:8.1.0' // 对应Gradle 8.0+
-        classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version"
+
+    signingConfigs {
+        release {
+            // CI环境变量读取
+            if (System.getenv("KEYSTORE_PATH") != null) {
+                storeFile file(System.getenv("KEYSTORE_PATH"))
+                storePassword System.getenv("KEYSTORE_PASSWORD")
+                keyAlias System.getenv("KEY_ALIAS")
+                keyPassword System.getenv("KEY_PASSWORD")
+            }
+        }
+    }
+
+    buildTypes {
+        release {
+            minifyEnabled true
+            shrinkResources true
+            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+            if (System.getenv("KEYSTORE_PATH") != null) {
+                signingConfig signingConfigs.release
+            }
+        }
+        debug {
+            minifyEnabled false
+        }
+    }
+
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_17
+        targetCompatibility JavaVersion.VERSION_17
+    }
+    kotlinOptions {
+        jvmTarget = '17'
+    }
+
+    // 确保 JS 文件所在的 assets 文件夹被打包
+    sourceSets {
+        main {
+            assets.srcDirs = ['src/main/assets']
+            // 如果你添加了其他的jniLibs或资源目录，在这里补充
+            // jniLibs.srcDirs = ['libs']
+        }
+    }
+
+    // 防止引入AAR后打包报错
+    packagingOptions {
+        jniLibs {
+            useLegacyPackaging = true
+        }
+        resources {
+            excludes += ['META-INF/DEPENDENCIES', 'META-INF/LICENSE', 'META-INF/LICENSE.txt', 'META-INF/NOTICE', 'META-INF/NOTICE.txt']
+        }
     }
 }
 
-tasks.register('clean', Delete) {
-    delete rootProject.buildDir
+dependencies {
+    // ================= 你原本的AAR =================
+    implementation files('libs/Codec.aar')
+    implementation files('libs/SparkChain.aar')
+    
+    // ================= 基础依赖 =================
+    implementation 'androidx.core:core-ktx:1.12.0'
+    implementation 'androidx.appcompat:appcompat:1.6.1'
+    implementation 'com.google.android.material:material:1.11.0'
+    
+    // ⚠️ 你额外加进去的其他文件，请在下方补充它们的依赖！
+    // 例如：implementation 'com.squareup.okhttp3:okhttp:4.9.0'
 }

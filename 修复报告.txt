@@ -1,0 +1,41 @@
+ZONGHE 项目检查与修复报告
+================================
+
+已修复：
+1. Android 入口错误
+   原因：MainActivity 加载 file:///android_asset/index.js，但项目不存在 index.js。
+   修复：改为加载 file:///android_asset/index.html。
+
+2. HTML 引用了不存在的 data/words.js
+   原因：项目实际采用 decks.js + data/words/*.js 动态词库。
+   修复：删除不存在的 words.js 引用，保留现有动态词库加载机制。
+
+3. Release ProGuard 文件名错误
+   原因：app/build.gradle 引用了 proguard-rules.pro，而项目只有 proguard-rules.pro.txt。
+   修复：生成 app/proguard-rules.pro。
+
+4. Android WebView 语音识别不可靠
+   原因：原代码完全依赖 WebView SpeechRecognition，在 Android WebView 上可能不支持或立即返回识别失败。
+   修复：增加 Android 原生 SpeechRecognizer + JavascriptInterface 桥接；网页在 Android App 内优先调用原生识别，并处理权限、超时/无匹配/网络等错误。
+
+5. 麦克风运行时权限处理不足
+   修复：首次使用时由 Android 原生层请求 RECORD_AUDIO 权限，授权后自动继续识别。
+
+6. WebView 配置补强
+   修复：启用 WebChromeClient、DOM Storage、文件访问等必要能力。
+
+7. Manifest 主题统一
+   修复：使用项目自身的 Theme.MyApp，避免与定义的主题不一致。
+
+8. Release 签名配置
+   修复：有 CI 环境变量时使用 release-key.jks；没有密钥时不强制引用不存在的 debug.keystore，允许本地构建继续生成未签名 Release APK。
+
+静态检查：
+- HTML 内联 JavaScript：通过 Node.js --check
+- data/*.js：通过 Node.js --check
+- 词库 deck 文件：41 个 deck，引用文件全部存在
+- AndroidManifest / values XML：XML 解析通过
+
+注意：
+- 当前环境没有 Android SDK/Gradle，因此无法在此环境执行最终 assembleRelease。
+- GitHub Actions 已配置 Gradle 8.1.1 + JDK 17，上传修复后的项目后应继续观察 CI 的实际构建日志。
