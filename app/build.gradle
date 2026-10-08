@@ -1,0 +1,87 @@
+plugins {
+    id 'com.android.application'
+    id 'org.jetbrains.kotlin.android'
+}
+
+android {
+    namespace 'com.example.myapp' // 修改为你的包名
+    compileSdk 34
+
+    defaultConfig {
+        applicationId "com.example.myapp"
+        minSdk 24
+        targetSdk 34
+        versionCode 1
+        versionName "1.0"
+
+        // 如果需要NDK，可在此配置 abiFilters
+        ndk {
+            abiFilters 'armeabi-v7a', 'arm64-v8a' // 讯飞SDK通常包含这两种架构
+        }
+    }
+
+    // 读取GitHub Actions注入的签名环境变量
+    signingConfigs {
+        release {
+            // 如果环境变量存在，则使用环境变量（CI环境）
+            if (System.getenv("KEYSTORE_PATH") != null) {
+                storeFile file(System.getenv("KEYSTORE_PATH"))
+                storePassword System.getenv("KEYSTORE_PASSWORD")
+                keyAlias System.getenv("KEY_ALIAS")
+                keyPassword System.getenv("KEY_PASSWORD")
+            } else {
+                // 本地测试时的默认配置（建议本地不要打包release，或者自己配置一个测试签名）
+                storeFile file("../debug.keystore")
+                storePassword "android"
+                keyAlias "androiddebugkey"
+                keyPassword "android"
+            }
+        }
+    }
+
+    buildTypes {
+        release {
+            minifyEnabled true
+            shrinkResources true
+            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+            signingConfig signingConfigs.release // 应用签名
+        }
+        debug {
+            minifyEnabled false
+            signingConfig signingConfigs.debug // 如果本地无debug.keystore，可忽略
+        }
+    }
+
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_17
+        targetCompatibility JavaVersion.VERSION_17
+    }
+    kotlinOptions {
+        jvmTarget = '17'
+    }
+
+    // 确保 assets 文件夹（存放JS文件）被正确打包
+    sourceSets {
+        main {
+            assets.srcDirs = ['src/main/assets']
+        }
+    }
+
+    // 部分AAR可能包含JNI，防止打包报错
+    packagingOptions {
+        jniLibs {
+            useLegacyPackaging = true
+        }
+    }
+}
+
+dependencies {
+    // 1. 引入本地讯飞 AAR 文件
+    implementation files('libs/Codec.aar')
+    implementation files('libs/SparkChain.aar')
+    
+    // 2. 基础依赖
+    implementation 'androidx.core:core-ktx:1.12.0'
+    implementation 'androidx.appcompat:appcompat:1.6.1'
+    implementation 'com.google.android.material:material:1.11.0'
+}
