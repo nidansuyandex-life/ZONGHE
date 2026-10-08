@@ -20,26 +20,23 @@ jobs:
       with:
         java-version: '17'
         distribution: 'temurin'
-        cache: gradle
 
-    - name: 3. Grant execute permission for gradlew
-      run: chmod +x gradlew
+    - name: 3. Setup Gradle
+      uses: gradle/gradle-build-action@v3 # 核心：自动处理Gradle环境，无需gradlew文件
 
     - name: 4. Decode Keystore
       env:
         ANDROID_KEYSTORE_BASE64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
       run: |
         echo "$ANDROID_KEYSTORE_BASE64" | base64 --decode > release-key.jks
-        # 如果你在 build.gradle 里写的路径是 release-key.jks
-        # 确保它生成在根目录，或者通过环境变量传递绝对路径
 
     - name: 5. Build Release APK
       env:
-        KEYSTORE_PATH: release-key.jks # 这里的路径对应 build.gradle 里的 System.getenv("KEYSTORE_PATH")
+        KEYSTORE_PATH: release-key.jks
         KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
         KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
         KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
-      run: ./gradlew assembleRelease --stacktrace
+      run: gradle assembleRelease --stacktrace # 直接使用全局gradle命令
 
     - name: 6. Upload APK
       uses: actions/upload-artifact@v4
