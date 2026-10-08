@@ -1,0 +1,21 @@
+pluginManagement {
+    repositories {
+        google()
+        mavenCentral()
+        gradlePluginPortal()
+    }
+}
+dependencyResolutionManagement {
+    repositoriesMode.set(RepositoriesMode.FAIL_ON_PROJECT_REPOS)
+    repositories {
+        google()
+        mavenCentral()
+        // 如果你在别的文件里加了别的maven库，保留它们
+        flatDir {
+            dirs 'app/libs' // 允许本地AAR被识别
+        }
+    }
+}
+
+rootProject.name = "MyApp"
+include ':app'
